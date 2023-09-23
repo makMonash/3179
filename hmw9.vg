@@ -1,0 +1,64 @@
+{
+  "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+  "title": "Total Annual Ridership by Region",
+  "width": 800,
+  "height": 500,
+  "data": {
+    "url": "https://raw.githubusercontent.com/makMonash/3179/main/metro_countries_total.csv",
+    "format": {"type": "csv"}
+  },
+  "transform": [
+    {
+      "calculate": "if(datum.region === 'australia', 'Oceania', datum.region)",
+      "as": "updated_region"
+    },
+    {
+      "calculate": "if(datum.region === 'asia', 'Asia', datum.updated_region)",
+      "as": "updated_region"
+    },
+    {
+      "calculate": "if(datum.region === 'europe', 'Europe', datum.updated_region)",
+      "as": "updated_region"
+    },
+    {
+      "calculate": "if(datum.updated_region === 'latin_america', 'South America', datum.updated_region)",
+      "as": "updated_region"
+    },
+    {
+      "calculate": "if(datum.updated_region === 'north_america', 'North America', datum.updated_region)",
+      "as": "updated_region"
+    },
+    {
+      "calculate": "if(datum.updated_region === 'africa', 'Africa', datum.updated_region)",
+      "as": "updated_region"
+    },
+    {
+      "aggregate": [{"op": "sum", "field": "annual_ridership_mill", "as": "TotalRidership"}],
+      "groupby": ["updated_region"]
+    },
+    {
+      "lookup": "updated_region",
+      "from": {
+        "data": {
+          "url": "https://raw.githubusercontent.com/JiazhouLiu/FIT3179/main/VegaLite/3_choropleth_map/js/ne_110m_admin_0_countries.topojson",
+          "format": {"type": "topojson", "feature": "properties.CONTINENT"}
+        },
+        "key": "properties.CONTINENT",
+        "fields": ["updated_region"]
+      }
+    }
+  ],
+  "mark": {"type": "geoshape", "stroke": "black", "strokeWidth": 0.5},
+  "encoding": {
+    "color": {
+      "field": "TotalRidership",
+      "type": "quantitative",
+      "title": "Total Annual Ridership (Million)",
+      "scale": {"type": "log"}
+    },
+    "tooltip": [
+      {"field": "properties.CONTINENT", "type": "nominal", "title": "Region"},
+      {"field": "TotalRidership", "type": "quantitative", "title": "Total Annual Ridership (Million)"}
+    ]
+  }
+}
